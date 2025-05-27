@@ -1,0 +1,45 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
+
+### 회원 생성
+POST http://localhost:8080/member/create
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "John Doe",
+  "email": "test@naver.com",
+  "password": "1234"
+}
+
+### 회원 생성
+POST http://localhost:8080/member/create
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Alice",
+  "email": "test2@naver.com",
+  "password": "1234"
+}
+
+### 로그인 테스트
+POST http://localhost:8080/member/doLogin
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "test@naver.com",
+  "password": "1234"
+}
+
+> {%
+ client.global.set("authorizationToken", "Bearer " + response.body.token);
+ client.log("Auth Token: " + client.global.get("authorizationToken"));
+ %}
+
+
+### 회원 조회
+GET http://localhost:8080/member/list
+Authorization: {{authorizationToken}}

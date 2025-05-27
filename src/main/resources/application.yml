@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/chatdb?useSSL=false
+    username: root
+    password: 1234
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+jwt:
+    # chatserversecreteaccesstoken 3번 -> 해당 값을 base64 인코딩하여 secret으로 지정
+    secretKey: Y2hhdHNlcnZlcnNlY3JldGVhY2Nlc3N0b2tlbmNoYXRzZXJ2ZXJzZWNyZXRlYWNjZXNzdG9rZW5jaGF0c2VydmVyc2VjcmV0ZWFjY2Vzc3Rva2Vu
+    expiration: 3000 # 3000분
+
+logging:
+  level:
+    root: info

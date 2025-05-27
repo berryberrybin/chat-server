@@ -1,0 +1,15 @@
+### 그룹 채팅방 생성
+POST http://localhost:8080/chat/room/group/create?roomName=RoomA
+Content-Type: application/json
+Accept: application/json
+Authorization: {{authorizationToken}}
+
+### 그룹채팅 목록 조회
+GET http://localhost:8080/chat/room/group/list
+Authorization: {{authorizationToken}}
+
+### 그룹채팅 참여
+POST http://localhost:8080/chat/room/group/1/join
+Content-Type: application/json
+Accept: application/json
+Authorization: {{authorizationToken}}
