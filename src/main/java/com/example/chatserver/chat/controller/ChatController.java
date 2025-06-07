@@ -1,6 +1,5 @@
 package com.example.chatserver.chat.controller;
 
-import com.example.chatserver.chat.domain.ChatMessage;
 import com.example.chatserver.chat.dto.ChatMessageDto;
 import com.example.chatserver.chat.dto.ChatRoomListResDto;
 import com.example.chatserver.chat.dto.MyChatListResDto;

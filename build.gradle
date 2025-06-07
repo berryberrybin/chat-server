@@ -53,16 +53,18 @@ tasks.named('test') {
 }
 
 
-def generated = layout.buildDirectory.dir("generated/querydsl").get().asFile
+def generatedDir = layout.buildDirectory.dir("generated/querydsl")
 
 sourceSets {
-	main {
-		java {
-			srcDir generated
-		}
-	}
+    main {
+        java {
+            srcDir generatedDir
+        }
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
-	options.annotationProcessorGeneratedSourcesDirectory = file(generated)
+    options.compilerArgs += [
+        "-Aquerydsl.generatedSourcesDir=" + generatedDir.get().asFile
+    ]
 }
