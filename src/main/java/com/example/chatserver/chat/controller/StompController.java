@@ -5,12 +5,14 @@ import com.example.chatserver.chat.service.ChatService;
 import com.example.chatserver.chat.service.RedisPubSubService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Controller;
 
+@RequiredArgsConstructor
 @Controller
 @Slf4j
 public class StompController {
@@ -18,12 +20,7 @@ public class StompController {
     private final SimpMessageSendingOperations messageTemplate;
     private final ChatService chatService;
     private final RedisPubSubService redisPubSubService;
-
-    public StompController(SimpMessageSendingOperations messageTemplate, ChatService chatService, RedisPubSubService redisPubSubService) {
-        this.messageTemplate = messageTemplate;
-        this.chatService = chatService;
-        this.redisPubSubService = redisPubSubService;
-    }
+    private final boolean redisAvailable;
 
     /*
     // [방법 1] MessageMapping(수신)과 SendTo(topic에 메시지 전달) 한꺼번에 처리
@@ -52,8 +49,13 @@ public class StompController {
         chatService.saveMessage(roomId, chatMessageDto);
         chatMessageDto.setRoomId(roomId); // roomId를 chatMessageDto에 설정 (message에 포함되도록)
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        String message = objectMapper.writeValueAsString(chatMessageDto);
+        if(!redisAvailable) {
+            log.warn("[Redis 비활성 상태] skipping message publishing to Redis.");
+            messageTemplate.convertAndSend("/topic/" + roomId, chatMessageDto);
+            return;
+        }
+
+        String message = new ObjectMapper().writeValueAsString(chatMessageDto);
         redisPubSubService.publish("chat", message);
     }
 

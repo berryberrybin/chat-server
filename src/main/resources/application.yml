@@ -9,12 +9,13 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     generate-ddl: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
   data:
     redis:
       host: localhost
       port: 6379
+      enabled: true
 
 jwt:
   # chatserversecreteaccesstoken 3번 -> 해당 값을 base64 인코딩하여 secret으로 지정

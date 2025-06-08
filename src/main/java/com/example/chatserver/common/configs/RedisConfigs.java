@@ -1,10 +1,13 @@
 package com.example.chatserver.common.configs;
 
 import com.example.chatserver.chat.service.RedisPubSubService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -13,12 +16,38 @@ import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+
 @Configuration
+@ConditionalOnProperty(name = "spring.data.redis.enabled", havingValue = "true", matchIfMissing = true)
+@Slf4j
 public class RedisConfigs {
-    @Value("${spring.redis.host}")
+
+    @Value("${spring.data.redis.host}")
     private String redisHost;
-    @Value("${spring.redis.port}")
+    @Value("${spring.data.redis.port}")
     private int redisPort;
+    @Value("${spring.data.redis.enabled:true}")
+    private boolean redisEnabled;
+
+    @Bean
+    @Lazy
+    public boolean redisAvailable() {
+        System.out.println("[Redis 연결 상태 확인] Redis 연결 상태 확인 중...");
+        if (!redisEnabled) return false;
+
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(redisHost, redisPort), 1000);
+            log.info("[Redis 활성 상태] Redis 연결 성공");
+            return true;
+        } catch (IOException e) {
+            //System.err.println("[Redis 비활성 상태] Redis 연결 실패: " + e.getMessage());
+            log.error("[Redis 비활성 상태] Redis 연결 실패: " + e.getMessage());
+            return false;
+        }
+    }
 
     // 연결 기본 객체
     @Bean
@@ -44,7 +73,7 @@ public class RedisConfigs {
     @Bean
     @Qualifier("chatPubSub") // 여기서도 여러개의 StringRedisTemplate이 있을 수 있기 때문에 @Qualifier를 사용하여 구분
     public StringRedisTemplate stringRedisTemplate(@Qualifier("chatPubSub") RedisConnectionFactory redisConnectionFactory) {
-    // RedisConnectionFactory을 주입받는데 여러개의 RedisConnectionFactory가 있을 수 있기 때문에 @Qualifier를 사용하여 구분할 수 있음
+        // RedisConnectionFactory을 주입받는데 여러개의 RedisConnectionFactory가 있을 수 있기 때문에 @Qualifier를 사용하여 구분할 수 있음
         return new StringRedisTemplate(redisConnectionFactory);
     }
 
@@ -53,7 +82,11 @@ public class RedisConfigs {
     public RedisMessageListenerContainer redisMessageListenerContainer(
             @Qualifier("chatPubSub") RedisConnectionFactory redisConnectionFactory,
             MessageListenerAdapter messageListenerAdapter
-            ) {
+    ) {
+        if (!redisAvailable()) {
+            log.warn("[Redis 비활성 상태] RedisMessageListenerContainer 생성 생략");
+            return null;
+        }
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(redisConnectionFactory);
 
